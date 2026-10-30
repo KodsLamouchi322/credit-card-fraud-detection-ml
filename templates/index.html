@@ -160,6 +160,94 @@
             margin-top: 5px;
         }
 
+        /* OCR Section */
+        .ocr-section {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border: 2px dashed #667eea;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 35px;
+            text-align: center;
+        }
+
+        .ocr-section h6 {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .ocr-section p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .ocr-drop-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 20px;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+
+        .ocr-drop-label:hover { background: rgba(102,126,234,0.07); }
+
+        .ocr-drop-label .icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+        #ocr-file-input { display: none; }
+
+        #ocr-filename {
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .btn-ocr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 28px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-ocr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .ocr-result-box {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .ocr-result-box h6 { color: #2f855a; font-weight: 700; margin-bottom: 8px; }
+
+        .ocr-raw-text {
+            background: #1a202c;
+            color: #68d391;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+
         /* Export button */
         .btn-export {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -222,13 +310,41 @@
                 <a href="/export" class="btn-export">⬇️ Export CSV for Power BI</a>
             </div>
 
+            <!-- OCR Upload Section -->
+            <div class="ocr-section">
+                <h6>📷 Auto-fill from Receipt / Screenshot</h6>
+                <p>Upload an image of a transaction receipt — OCR will extract the fields automatically.</p>
+                <form method="POST" action="/ocr" enctype="multipart/form-data">
+                    <label class="ocr-drop-label" for="ocr-file-input">
+                        <span class="icon">🖼️</span>
+                        <span style="color:#4a5568; font-weight:600;">Click to select an image</span>
+                        <span style="color:#a0aec0; font-size:0.8rem;">PNG, JPG, BMP, TIFF supported</span>
+                        <span id="ocr-filename"></span>
+                    </label>
+                    <input type="file" id="ocr-file-input" name="image" accept="image/*">
+                    <div class="mt-3">
+                        <button type="submit" class="btn-ocr">🔎 Extract with OCR</button>
+                    </div>
+                </form>
+
+                {% if ocr_success %}
+                <div class="ocr-result-box mt-3">
+                    <h6>✅ Fields extracted — review and adjust before predicting</h6>
+                    <small class="text-muted">OCR raw text:</small>
+                    <div class="ocr-raw-text">{{ ocr_text }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Prediction Form -->
             <form method="POST" action="/predict">
 
                 <div class="form-group row">
                     <label for="amount" class="col-sm-3 col-form-label">Transaction Amount</label>
                     <div class="col-sm-9">
                         <input type="number" step="0.01" class="form-control" id="amount" name="amount"
-                            placeholder="Enter amount" required>
+                            placeholder="Enter amount"
+                            value="{{ ocr_fields.amount if ocr_fields else '' }}" required>
                     </div>
                 </div>
 
@@ -236,7 +352,8 @@
                     <label for="oldbalanceOrg" class="col-sm-3 col-form-label">Old Balance (Origin)</label>
                     <div class="col-sm-9">
                         <input type="number" step="0.01" class="form-control" id="oldbalanceOrg" name="oldbalanceOrg"
-                            placeholder="Enter old balance" required>
+                            placeholder="Enter old balance"
+                            value="{{ ocr_fields.oldbalanceOrg if ocr_fields else '' }}" required>
                     </div>
                 </div>
 
@@ -244,7 +361,8 @@
                     <label for="newbalanceOrig" class="col-sm-3 col-form-label">New Balance (Origin)</label>
                     <div class="col-sm-9">
                         <input type="number" step="0.01" class="form-control" id="newbalanceOrig" name="newbalanceOrig"
-                            placeholder="Enter new balance" required>
+                            placeholder="Enter new balance"
+                            value="{{ ocr_fields.newbalanceOrig if ocr_fields else '' }}" required>
                     </div>
                 </div>
 
@@ -252,7 +370,8 @@
                     <label for="oldbalanceDest" class="col-sm-3 col-form-label">Old Balance (Dest.)</label>
                     <div class="col-sm-9">
                         <input type="number" step="0.01" class="form-control" id="oldbalanceDest" name="oldbalanceDest"
-                            placeholder="Enter old balance" required>
+                            placeholder="Enter old balance"
+                            value="{{ ocr_fields.oldbalanceDest if ocr_fields else '' }}" required>
                     </div>
                 </div>
 
@@ -260,7 +379,8 @@
                     <label for="newbalanceDest" class="col-sm-3 col-form-label">New Balance (Dest.)</label>
                     <div class="col-sm-9">
                         <input type="number" step="0.01" class="form-control" id="newbalanceDest" name="newbalanceDest"
-                            placeholder="Enter new balance" required>
+                            placeholder="Enter new balance"
+                            value="{{ ocr_fields.newbalanceDest if ocr_fields else '' }}" required>
                     </div>
                 </div>
 
@@ -269,11 +389,12 @@
                     <div class="col-sm-9">
                         <select class="form-control" id="type" name="type" required>
                             <option value="">Select type...</option>
-                            <option>PAYMENT</option>
-                            <option>TRANSFER</option>
-                            <option>CASH_OUT</option>
-                            <option>DEPOSIT</option>
-                            <option>CASH_IN</option>
+                            {% set detected_type = ocr_fields.type if ocr_fields else '' %}
+                            <option {% if detected_type == 'PAYMENT' %}selected{% endif %}>PAYMENT</option>
+                            <option {% if detected_type == 'TRANSFER' %}selected{% endif %}>TRANSFER</option>
+                            <option {% if detected_type == 'CASH_OUT' %}selected{% endif %}>CASH_OUT</option>
+                            <option {% if detected_type == 'DEPOSIT' %}selected{% endif %}>DEPOSIT</option>
+                            <option {% if detected_type == 'CASH_IN' %}selected{% endif %}>CASH_IN</option>
                         </select>
                     </div>
                 </div>
@@ -334,6 +455,13 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        // Show selected filename in OCR drop zone
+        document.getElementById('ocr-file-input').addEventListener('change', function () {
+            const label = document.getElementById('ocr-filename');
+            label.textContent = this.files.length > 0 ? '📎 ' + this.files[0].name : '';
+        });
+    </script>
 </body>
 
 </html>
