@@ -77,6 +77,28 @@
             background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
         }
 
+        .alert-danger {
+            background: linear-gradient(135deg, #fc5c7d 0%, #6a3093 100%);
+            border: none;
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(252, 92, 125, 0.3);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border: none;
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+
         .alert-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -88,32 +110,103 @@
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
 
-        /* Decorative elements */
-        .main-container::before {
-            content: '';
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            right: -5px;
-            bottom: -5px;
-            background: linear-gradient(135deg, #48bb78 0%, #667eea 100%);
-            border-radius: 22px;
-            z-index: -1;
-            opacity: 0.1;
+        /* Stats Cards */
+        .stats-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .stats-section h5 {
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-card .stat-value.danger {
+            color: #fc5c7d;
+        }
+
+        .stat-card .stat-value.success {
+            color: #48bb78;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: #718096;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* Export button */
+        .btn-export {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .btn-export:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+            text-decoration: none;
+        }
+
+        .btn-dashboard {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-dashboard:hover {
+            color: white;
+            transform: translateY(-2px);
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
         }
 
         @media (max-width: 576px) {
-            .col-form-label {
-                text-align: left;
-            }
-
-            .main-container {
-                padding: 30px 20px;
-            }
-
-            h2 {
-                font-size: 2rem;
-            }
+            .col-form-label { text-align: left; }
+            .main-container { padding: 30px 20px; }
+            h2 { font-size: 2rem; }
         }
     </style>
 </head>
@@ -122,6 +215,13 @@
     <div class="container">
         <div class="main-container position-relative">
             <h2>🔒 Transaction Fraud Detection</h2>
+
+            <!-- Action buttons -->
+            <div class="text-center mb-4">
+                <a href="/dashboard" class="btn-dashboard mr-3">📊 Live Dashboard</a>
+                <a href="/export" class="btn-export">⬇️ Export CSV for Power BI</a>
+            </div>
+
             <form method="POST" action="/predict">
 
                 <div class="form-group row">
@@ -187,10 +287,47 @@
             </form>
 
             {% if prediction_text %}
-            <div class="alert alert-info mt-5 text-center" role="alert">
+            <div class="alert alert-{{ prediction_class or 'info' }} mt-5 text-center" role="alert">
+                {% if prediction_class == 'danger' %}⚠️{% else %}✅{% endif %}
                 {{ prediction_text }}
             </div>
             {% endif %}
+
+            <!-- Stats section -->
+            {% if stats and stats.total > 0 %}
+            <div class="stats-section">
+                <h5>📈 Prediction Statistics</h5>
+                <div class="row">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.total }}</div>
+                            <div class="stat-label">Total Analyzed</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-value danger">{{ stats.fraudulent }}</div>
+                            <div class="stat-label">Fraudulent</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-value success">{{ stats.legitimate }}</div>
+                            <div class="stat-label">Legitimate</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-value {% if stats.fraud_rate > 30 %}danger{% else %}success{% endif %}">
+                                {{ stats.fraud_rate }}%
+                            </div>
+                            <div class="stat-label">Fraud Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 

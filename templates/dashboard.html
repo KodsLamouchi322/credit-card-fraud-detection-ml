@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection — Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 30px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #a0aec0;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .kpi-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s;
+        }
+
+        .kpi-card:hover { transform: translateY(-4px); }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 8px;
+        }
+
+        .chart-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+        }
+
+        .chart-card h6 {
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+
+        .table-dark {
+            background: transparent;
+        }
+
+        .table-dark th { color: #a0aec0; font-size: 0.8rem; text-transform: uppercase; border-color: rgba(255,255,255,0.1); }
+        .table-dark td { border-color: rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .table-dark tbody tr:hover { background: rgba(255,255,255,0.05); }
+
+        .badge-fraud { background: #fc5c7d; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge-legit { background: #48bb78; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
+
+        .btn-back {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover { background: rgba(255,255,255,0.2); color: white; text-decoration: none; }
+
+        .btn-export-dash {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-export-dash:hover { color: white; text-decoration: none; opacity: 0.9; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state .icon { font-size: 4rem; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid px-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>📊 Fraud Analytics Dashboard</h1>
+            <p class="subtitle">Real-time prediction monitoring — exportable for Power BI</p>
+        </div>
+        <div>
+            <a href="/" class="btn-back mr-3">← Back to Predictor</a>
+            <a href="/export" class="btn-export-dash">⬇️ Export CSV</a>
+        </div>
+    </div>
+
+    {% if stats and stats.total > 0 %}
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <div class="col-6 col-md-3 mb-3">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:#4facfe">{{ stats.total }}</div>
+                <div class="kpi-label">Total Transactions</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:#fc5c7d">{{ stats.fraudulent }}</div>
+                <div class="kpi-label">Fraudulent</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:#48bb78">{{ stats.legitimate }}</div>
+                <div class="kpi-label">Legitimate</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:{% if stats.fraud_rate > 30 %}#fc5c7d{% else %}#f6ad55{% endif %}">
+                    {{ stats.fraud_rate }}%
+                </div>
+                <div class="kpi-label">Fraud Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+
+        <!-- Donut Chart -->
+        <div class="col-md-4">
+            <div class="chart-card">
+                <h6>🥧 Fraud vs Legitimate</h6>
+                <canvas id="donutChart" height="220"></canvas>
+            </div>
+        </div>
+
+        <!-- Bar Chart by type -->
+        <div class="col-md-8">
+            <div class="chart-card">
+                <h6>📊 Fraud Rate by Transaction Type</h6>
+                <canvas id="barChart" height="220"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Transactions Table -->
+    <div class="chart-card">
+        <h6>🕐 Recent Predictions (last 10)</h6>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Old Bal. (Orig)</th>
+                        <th>New Bal. (Orig)</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in stats.recent | reverse %}
+                    <tr>
+                        <td>{{ row.timestamp }}</td>
+                        <td>{{ row.type }}</td>
+                        <td>${{ "%.2f"|format(row.amount) }}</td>
+                        <td>${{ "%.2f"|format(row.oldbalanceOrg) }}</td>
+                        <td>${{ "%.2f"|format(row.newbalanceOrig) }}</td>
+                        <td>
+                            {% if row.prediction == 1 %}
+                                <span class="badge-fraud">⚠️ Fraud</span>
+                            {% else %}
+                                <span class="badge-legit">✅ Legit</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Power BI hint -->
+    <div class="chart-card text-center" style="padding: 20px;">
+        <p class="mb-2" style="color:#a0aec0; font-size:0.9rem;">
+            🔌 <strong style="color:white;">Connect Power BI</strong> — Use "Web" connector with this URL:
+        </p>
+        <code style="background:rgba(255,255,255,0.1); padding: 8px 16px; border-radius:8px; color:#4facfe;">
+            http://localhost:5000/export
+        </code>
+        <p class="mt-2 mb-0" style="color:#718096; font-size:0.8rem;">
+            Or download the CSV and import it directly into Power BI Desktop.
+        </p>
+    </div>
+
+    {% else %}
+
+    <!-- Empty state -->
+    <div class="empty-state">
+        <div class="icon">📭</div>
+        <h4 style="color:white;">No predictions yet</h4>
+        <p>Go back and analyze some transactions — they will appear here automatically.</p>
+        <a href="/" class="btn-back">← Go to Predictor</a>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+{% if stats and stats.total > 0 %}
+
+// Donut Chart
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Legitimate', 'Fraudulent'],
+        datasets: [{
+            data: [{{ stats.legitimate }}, {{ stats.fraudulent }}],
+            backgroundColor: ['#48bb78', '#fc5c7d'],
+            borderColor: 'transparent',
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: '#a0aec0', padding: 16, font: { size: 13 } }
+            }
+        }
+    }
+});
+
+// Bar Chart
+const byType = {{ stats.by_type | tojson }};
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: byType.map(d => d.type),
+        datasets: [
+            {
+                label: 'Legitimate',
+                data: byType.map(d => d.total - d.fraudulent),
+                backgroundColor: '#48bb78',
+                borderRadius: 6
+            },
+            {
+                label: 'Fraudulent',
+                data: byType.map(d => d.fraudulent),
+                backgroundColor: '#fc5c7d',
+                borderRadius: 6
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: '#a0aec0', font: { size: 12 } }
+            }
+        },
+        scales: {
+            x: {
+                stacked: true,
+                ticks: { color: '#a0aec0' },
+                grid: { color: 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+                stacked: true,
+                ticks: { color: '#a0aec0' },
+                grid: { color: 'rgba(255,255,255,0.05)' }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+
+</body>
+</html>
