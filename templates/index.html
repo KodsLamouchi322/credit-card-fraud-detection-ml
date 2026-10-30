@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+
+        .form-group.row {
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .col-form-label {
+            font-weight: 600;
+            text-align: right;
+            color: #4a5568;
+            font-size: 1.05rem;
+        }
+
+        .form-control,
+        select.form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            height: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            padding: 12px 20px;
+        }
+
+        .form-control:focus,
+        select.form-control:focus {
+            border-color: #48bb78;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border: none;
+            height: 55px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Decorative elements */
+        .main-container::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(135deg, #48bb78 0%, #667eea 100%);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        @media (max-width: 576px) {
+            .col-form-label {
+                text-align: left;
+            }
+
+            .main-container {
+                padding: 30px 20px;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-container position-relative">
+            <h2>🔒 Transaction Fraud Detection</h2>
+            <form method="POST" action="/predict">
+
+                <div class="form-group row">
+                    <label for="amount" class="col-sm-3 col-form-label">Transaction Amount</label>
+                    <div class="col-sm-9">
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount"
+                            placeholder="Enter amount" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="oldbalanceOrg" class="col-sm-3 col-form-label">Old Balance (Origin)</label>
+                    <div class="col-sm-9">
+                        <input type="number" step="0.01" class="form-control" id="oldbalanceOrg" name="oldbalanceOrg"
+                            placeholder="Enter old balance" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="newbalanceOrig" class="col-sm-3 col-form-label">New Balance (Origin)</label>
+                    <div class="col-sm-9">
+                        <input type="number" step="0.01" class="form-control" id="newbalanceOrig" name="newbalanceOrig"
+                            placeholder="Enter new balance" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="oldbalanceDest" class="col-sm-3 col-form-label">Old Balance (Dest.)</label>
+                    <div class="col-sm-9">
+                        <input type="number" step="0.01" class="form-control" id="oldbalanceDest" name="oldbalanceDest"
+                            placeholder="Enter old balance" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="newbalanceDest" class="col-sm-3 col-form-label">New Balance (Dest.)</label>
+                    <div class="col-sm-9">
+                        <input type="number" step="0.01" class="form-control" id="newbalanceDest" name="newbalanceDest"
+                            placeholder="Enter new balance" required>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="type" class="col-sm-3 col-form-label">Transaction Type</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" id="type" name="type" required>
+                            <option value="">Select type...</option>
+                            <option>PAYMENT</option>
+                            <option>TRANSFER</option>
+                            <option>CASH_OUT</option>
+                            <option>DEPOSIT</option>
+                            <option>CASH_IN</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-4">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-primary btn-block">🔍 Analyze Transaction</button>
+                    </div>
+                </div>
+
+            </form>
+
+            {% if prediction_text %}
+            <div class="alert alert-info mt-5 text-center" role="alert">
+                {{ prediction_text }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>
